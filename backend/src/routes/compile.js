@@ -65,25 +65,37 @@ lto = true
         await cleanUp();
         return res.status(500).json({ 
           error: "Compilation failed", 
-          details: stderr || err.message 
+          status: "error",
+          details: stderr || err.message,
+          logs: stderr ? stderr.split('\n').filter(l => l.trim()) : []
         });
       }
 
       // Check if wasm exists
       const wasmPath = path.join(tempDir, "target", "wasm32-unknown-unknown", "release", "soroban_contract.wasm");
       try {
-        await fs.access(wasmPath);
+        const fileStats = await fs.stat(wasmPath);
         // It's built successfully
         await cleanUp();
         return res.json({ 
           success: true, 
+          status: "success",
           message: "Contract compiled successfully",
-          logs: stdout || "Build completed.",
-          // In a full implementation, you'd store the WASM or return its base64
+          logs: (stdout + (stderr ? "\n" + stderr : "")).split('\n').filter(l => l.trim()),
+          artifact: {
+            name: "soroban_contract.wasm",
+            sizeBytes: fileStats.size,
+            createdAt: fileStats.birthtime
+          }
         });
       } catch (e) {
         await cleanUp();
-        return res.status(500).json({ error: "WASM file not generated", details: stderr });
+        return res.status(500).json({ 
+          error: "WASM file not generated", 
+          status: "error",
+          details: stderr || e.message,
+          logs: stderr ? stderr.split('\n').filter(l => l.trim()) : []
+        });
       }
     });
 
