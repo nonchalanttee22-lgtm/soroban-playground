@@ -1,7 +1,7 @@
-import express from "express";
-import { exec } from "child_process";
-import fs from "fs/promises";
-import path from "path";
+import express from 'express';
+import { exec } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
 
 const router = express.Router();
 
@@ -15,39 +15,39 @@ function validateDeployRequest(body) {
   const errors = [];
 
   if (!wasmPath) {
-    errors.push("wasmPath is required");
-  } else if (typeof wasmPath !== "string") {
-    errors.push("wasmPath must be a string");
+    errors.push('wasmPath is required');
+  } else if (typeof wasmPath !== 'string') {
+    errors.push('wasmPath must be a string');
   }
 
   if (!contractName) {
-    errors.push("contractName is required");
-  } else if (typeof contractName !== "string") {
-    errors.push("contractName must be a string");
+    errors.push('contractName is required');
+  } else if (typeof contractName !== 'string') {
+    errors.push('contractName must be a string');
   }
 
   if (errors.length > 0) {
     return {
-      error: "Validation failed",
-      details: errors
+      error: 'Validation failed',
+      details: errors,
     };
   }
 
   return null;
 }
 
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   // Validate request payload
   const validationError = validateDeployRequest(req.body);
   if (validationError) {
     return res.status(400).json({
       success: false,
-      status: "error",
-      ...validationError
+      status: 'error',
+      ...validationError,
     });
   }
 
-  const { wasmPath, contractName, network = "testnet" } = req.body;
+  const { wasmPath, contractName, network = 'testnet' } = req.body;
 
   // In a real implementation this would receive a WASM buffer or path
   // from the compile step. We'll simulate receiving code or an existing compile job.
@@ -62,17 +62,18 @@ router.post("/", async (req, res) => {
   setTimeout(() => {
     // Generate a random contract ID to simulate successful deploy
     // Stellar contract IDs start with 'C' and are 56 characters long
-    const contractId = "C" + Math.random().toString(36).substring(2, 54).toUpperCase();
+    const contractId =
+      'C' + Math.random().toString(36).substring(2, 54).toUpperCase();
 
     res.json({
       success: true,
-      status: "success",
+      status: 'success',
       contractId,
       contractName,
       network,
       wasmPath,
       deployedAt: new Date().toISOString(),
-      message: `Contract "${contractName}" deployed successfully to ${network}`
+      message: `Contract "${contractName}" deployed successfully to ${network}`,
     });
   }, 1500);
 });
