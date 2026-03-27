@@ -1,79 +1,49 @@
-# Soroban Playground Backend API
+# Backend API
 
-This backend provides REST API endpoints for compiling, deploying, and invoking Soroban smart contracts.
+## Compile
 
-## Endpoints
+- URL: `POST /api/compile`
+- Body:
 
-### POST /api/compile
-
-Compiles Rust code into a Soroban WASM contract.
-
-**Request Body:**
 ```json
 {
-  "code": "string"  // The Rust contract source code
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "status": "success",
-  "message": "Contract compiled successfully",
-  "logs": ["array of log lines"],
-  "artifact": {
-    "name": "soroban_contract.wasm",
-    "sizeBytes": 12345,
-    "createdAt": "2023-..."
+  "code": "<Rust source for src/lib.rs>",
+  "dependencies": {
+    "serde": "1.0",
+    "serde_json": "^1.0"
   }
 }
 ```
 
-**Error Responses:**
+- Notes:
+  - `dependencies` is optional. When present, items are injected under the `[dependencies]` section of `Cargo.toml`.
+  - `soroban-sdk` is pinned by the backend and cannot be overridden.
 
-- **400 Bad Request** (User code errors):
-  ```json
-  {
-    "error": "Compilation failed: error[E0425]: cannot find value `x` in this scope",
-    "status": "error",
-    "details": "full compilation output",
-    "logs": ["array of stderr lines"]
-  }
-  ```
+- Validation:
+  - Crate names: lowercase `[a-z0-9][a-z0-9_-]{0,63}`.
+  - Versions: only characters `[0-9A-Za-zxX.^~* <>=,+-]` and spaces; max length 50.
+  - Max dependencies: 20.
+  - Disallows quotes, brackets, or newlines in names/versions.
 
-- **500 Internal Server Error** (System errors):
-  ```json
-  {
-    "error": "Compilation timed out. Please check your code for infinite loops or complex operations.",
-    "status": "error",
-    "details": "full output",
-    "logs": []
-  }
-  ```
+- Errors:
+  - `400` when code is missing or dependency input is invalid (details included).
+  - `400` when dependency payload cannot be safely transformed into `Cargo.toml`.
+  - `500` on compilation failures (stderr/diagnostics included).
 
-**Error Classification:**
-- **400**: Syntax errors, type errors, and other compilation issues in user code
-- **500**: System issues like missing tools, timeouts, or server errors
+## Global Error Handling
 
-### POST /api/deploy
+- All backend routes use a shared error middleware and return a consistent error shape:
 
-Deploys a compiled contract to the Stellar Testnet.
-
-### POST /api/invoke
-
-Invokes functions on a deployed contract.
-
-## Development
-
-```bash
-cd backend
-npm install
-npm run dev  # with nodemon
+```json
+{
+  "message": "Validation failed",
+  "statusCode": 400,
+  "details": ["code is required"]
+}
 ```
 
-## Dependencies
-
-- Express.js for the web server
-- Child process execution for Soroban CLI
-- File system operations for temporary builds
+- Notes:
+  - `details` is optional and primarily included for validation/client-actionable errors.
+  - Unknown errors default to `500` with a safe fallback.
+  - In production, internal `500` details are hidden to avoid leaking sensitive internals.
+  - Unknown routes return a structured `404` response using the same format.

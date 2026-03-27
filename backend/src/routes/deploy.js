@@ -1,5 +1,5 @@
 import express from "express";
-import { sendSuccess, sendError } from "../utils/response.js";
+import { asyncHandler, createHttpError } from "../middleware/errorHandler.js";
 
 const router = express.Router();
 
@@ -27,18 +27,18 @@ function validateDeployRequest(body) {
   if (errors.length > 0) {
     return {
       error: "Validation failed",
-      details: errors
+      details: errors,
     };
   }
 
   return null;
 }
 
-router.post("/", async (req, res) => {
+router.post("/", asyncHandler(async (req, res, next) => {
   // Validate request payload
   const validationError = validateDeployRequest(req.body);
   if (validationError) {
-    return sendError(res, { statusCode: 400, message: validationError.error, details: validationError.details });
+    return next(createHttpError(400, validationError.error, validationError.details));
   }
 
   const { wasmPath, contractName, network = "testnet" } = req.body;
@@ -50,23 +50,26 @@ router.post("/", async (req, res) => {
 
   // For the MVP, if no actual network configs/keys are present,
   // we simulate the deployment response. A full open-source implementation
-  // would construct a temporary keypair for the user using \`stellar-sdk\`
+  // would construct a temporary keypair for the user using `stellar-sdk`
   // or use a predefined funded testnet identity.
 
   setTimeout(() => {
-    const contractId = "C" + Math.random().toString(36).substring(2, 54).toUpperCase();
+    // Generate a random contract ID to simulate successful deploy
+    // Stellar contract IDs start with 'C' and are 56 characters long
+    const contractId =
+      "C" + Math.random().toString(36).substring(2, 54).toUpperCase();
 
-    return sendSuccess(res, {
+    res.json({
+      success: true,
+      status: "success",
+      contractId,
+      contractName,
+      network,
+      wasmPath,
+      deployedAt: new Date().toISOString(),
       message: `Contract "${contractName}" deployed successfully to ${network}`,
-      data: {
-        contractId,
-        contractName,
-        network,
-        wasmPath,
-        deployedAt: new Date().toISOString()
-      }
     });
   }, 1500);
-});
+}));
 
 export default router;

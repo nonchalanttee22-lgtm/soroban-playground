@@ -1,5 +1,6 @@
 # Dependencies
 node_modules
+
 /.pnp
 .pnp.js
 
@@ -38,3 +39,6 @@ yarn-error.log*
 
 # Typescript
 *.tsbuildinfo
+
+# Ignore test rate limit script (local/test-only)
+backend/test_rate_limit.js
