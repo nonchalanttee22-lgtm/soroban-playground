@@ -10,8 +10,20 @@
     "backend"
   ],
   "scripts": {
+    "prepare": "husky install",
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "lint:frontend": "npm --workspace frontend run lint",
+    "lint:backend": "npm --workspace backend run lint",
+    "lint": "npm run lint:frontend && npm run lint:backend"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^14.0.0"
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx}": "npx --workspace frontend eslint --fix",
+    "backend/**/*.js": "npx --workspace backend eslint --fix"
   }
 }
