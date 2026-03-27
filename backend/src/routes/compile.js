@@ -1,5 +1,5 @@
 import express from "express";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { sanitizeDependenciesInput, buildCargoToml } from "./compile_utils.js";
@@ -38,6 +38,8 @@ router.post("/", asyncHandler(async (req, res, next) => {
     await fs.writeFile(path.join(tempDir, "Cargo.toml"), cargoToml);
     await fs.writeFile(path.join(tempDir, "src", "lib.rs"), code);
 
+    // Execute Soroban CLI (or cargo block)
+    // Note: In a real server you might queue these or containerize. Here we spawn.
     const command = `cargo build --target wasm32-unknown-unknown --release`;
 
     exec(command, { cwd: tempDir, timeout: 30000 }, async (err, stdout, stderr) => {
