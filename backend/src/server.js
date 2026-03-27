@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import morgan from "morgan";
 import os from "os";
 import fs from "fs";
 import path from "path";
@@ -31,7 +30,11 @@ try {
   }
 }
 
+// Morgan logging format
+const logFormat = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms';
+
 // Basic middleware
+app.use(morgan(logFormat));
 app.use(cors());
 app.use(express.json());
 
@@ -152,7 +155,8 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
-  startCleanupWorker();
 });
+
+startCleanupWorker();
 
 export default app;

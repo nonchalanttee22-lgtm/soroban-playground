@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import logger from "./utils/logger.js";
 
 const CLEANUP_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 const OLD_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
@@ -23,17 +22,17 @@ function scanAndCleanupDir(baseDir) {
                     const birthtimeMs = stats.birthtimeMs;
 
                     if (now - birthtimeMs > OLD_THRESHOLD_MS) {
-                        logger.info(`Deleting old temporary directory: ${dirPath}`);
+                        console.log(`Deleting old temporary directory: ${dirPath}`);
                         fs.rmSync(dirPath, { recursive: true, force: true });
-                        logger.info(`Successfully deleted: ${dirPath}`);
+                        console.log(`Successfully deleted: ${dirPath}`);
                     }
                 } catch (err) {
-                    logger.error(`Failed to process or delete directory ${dirPath}: ${err.message}`);
+                    console.error(`Failed to process or delete directory ${dirPath}: ${err.message}`);
                 }
             }
         }
     } catch (err) {
-        logger.error(`Error scanning directory ${baseDir}: ${err.message}`);
+        console.error(`Error scanning directory ${baseDir}: ${err.message}`);
     }
 }
 
@@ -42,7 +41,7 @@ function scanAndCleanupDir(baseDir) {
  * and deletes those older than a specified threshold.
  */
 function cleanupTempDirectories() {
-    logger.info("Starting temporary directory cleanup...");
+    console.log("Starting temporary directory cleanup...");
 
     const rootDir = process.cwd();
     const srcDir = path.join(rootDir, "src");
@@ -55,7 +54,7 @@ function cleanupTempDirectories() {
         scanAndCleanupDir(srcDir);
     }
 
-    logger.info("Temporary directory cleanup finished.");
+    console.log("Temporary directory cleanup finished.");
 }
 
 /**
@@ -63,7 +62,7 @@ function cleanupTempDirectories() {
  * It runs immediately upon call and then at regular intervals.
  */
 export function startCleanupWorker() {
-    logger.info(`Temporary directory cleanup worker started. Running every ${CLEANUP_INTERVAL_MS / 1000 / 60} minutes.`);
+    console.log(`Temporary directory cleanup worker started. Running every ${CLEANUP_INTERVAL_MS / 1000 / 60} minutes.`);
     // Run immediately on startup
     cleanupTempDirectories();
     // Then run at intervals
