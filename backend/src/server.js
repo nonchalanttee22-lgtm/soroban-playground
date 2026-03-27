@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import os from "os";
 import fs from "fs";
 import path from "path";
@@ -9,14 +9,13 @@ import { fileURLToPath } from "url";
 import compileRoute from "./routes/compile.js";
 import deployRoute from "./routes/deploy.js";
 import invokeRoute from "./routes/invoke.js";
+import { startCleanupWorker } from "./cleanupWorker.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const logFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
-app.use(morgan(logFormat));
 const PORT = process.env.PORT || 5000;
 
 // Load package.json for version info
@@ -31,7 +30,11 @@ try {
   }
 }
 
+// Morgan logging format
+const logFormat = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms';
+
 // Basic middleware
+app.use(morgan(logFormat));
 app.use(cors());
 app.use(express.json());
 
@@ -153,5 +156,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
+
+startCleanupWorker();
 
 export default app;
