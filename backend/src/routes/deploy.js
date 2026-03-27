@@ -27,7 +27,7 @@ function validateDeployRequest(body) {
   if (errors.length > 0) {
     return {
       error: "Validation failed",
-      details: errors
+      details: errors,
     };
   }
 
@@ -50,13 +50,14 @@ router.post("/", asyncHandler(async (req, res, next) => {
 
   // For the MVP, if no actual network configs/keys are present,
   // we simulate the deployment response. A full open-source implementation
-  // would construct a temporary keypair for the user using \`stellar-sdk\`
+  // would construct a temporary keypair for the user using `stellar-sdk`
   // or use a predefined funded testnet identity.
 
   setTimeout(() => {
     // Generate a random contract ID to simulate successful deploy
     // Stellar contract IDs start with 'C' and are 56 characters long
-    const contractId = "C" + Math.random().toString(36).substring(2, 54).toUpperCase();
+    const contractId =
+      "C" + Math.random().toString(36).substring(2, 54).toUpperCase();
 
     res.json({
       success: true,
@@ -66,7 +67,7 @@ router.post("/", asyncHandler(async (req, res, next) => {
       network,
       wasmPath,
       deployedAt: new Date().toISOString(),
-      message: `Contract "${contractName}" deployed successfully to ${network}`
+      message: `Contract "${contractName}" deployed successfully to ${network}`,
     });
   }, 1500);
 }));
